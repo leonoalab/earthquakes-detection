@@ -1,7 +1,8 @@
 .PHONY: install infra-up infra-down infra-status db-init sync events ingestions \
 	index search ask tools agent graph
 
-RUN=uv run --env-file .env
+RUN=env -u LANGSMITH_AGENT_ID -u LANGSMITH_AGENT_ENVIRONMENT \
+	-u LANGCHAIN_PROJECT -u LANGCHAIN_SESSION uv run --env-file .env
 
 install:
 	uv sync

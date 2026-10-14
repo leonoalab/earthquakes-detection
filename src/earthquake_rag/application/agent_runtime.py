@@ -42,7 +42,17 @@ def invoke_agent(
     with agent_runtime(settings) as graph:
         result = graph.invoke(
             {"messages": [{"role": "user", "content": question}]},
-            config={"configurable": {"thread_id": thread_id}},
+            config={
+                "configurable": {"thread_id": thread_id},
+                "run_name": "earthquake_research_agent",
+                "tags": ["ollama", "qdrant", "postgresql", "agentic-rag"],
+                "metadata": {
+                    "chat_model": settings.ai.chat_model,
+                    "embedding_model": settings.ai.embedding_model,
+                    "default_hours": context.default_hours,
+                    "knowledge_cutoff": context.as_of or "now",
+                },
+            },
             context=context,
         )
     messages = result["messages"]
