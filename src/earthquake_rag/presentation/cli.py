@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 
 from earthquake_rag.application.ingestion import synchronize_usgs_feed
 from earthquake_rag.application.knowledge import index_knowledge, search_knowledge
+from earthquake_rag.application.rag import RagService
 from earthquake_rag.application.temporal import (
     get_event_history,
     get_latest_events,
@@ -30,6 +31,9 @@ def build_parser() -> argparse.ArgumentParser:
     search = subparsers.add_parser("search", help="Run semantic retrieval")
     search.add_argument("question")
     search.add_argument("--limit", type=int, default=4)
+    ask = subparsers.add_parser("ask", help="Answer with classic RAG")
+    ask.add_argument("question")
+    ask.add_argument("--limit", type=int, default=4)
     return parser
 
 
@@ -67,6 +71,16 @@ def main() -> None:
     elif args.command == "search":
         hits = search_knowledge(settings, args.question, args.limit)
         print(json.dumps([asdict(hit) for hit in hits], indent=2))
+    elif args.command == "ask":
+        service = RagService(settings)
+        try:
+            result = service.answer(args.question, args.limit)
+        finally:
+            service.close()
+        print(result.answer)
+        print("\nRetrieved sources:")
+        for hit in result.hits:
+            print(f"- {hit.title} ({hit.source}, score={hit.score:.4f})")
 
 
 if __name__ == "__main__":

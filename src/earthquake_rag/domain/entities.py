@@ -35,3 +35,9 @@ class KnowledgeHit:
     title: str
     source: str
     score: float
+
+
+@dataclass(frozen=True)
+class RagAnswer:
+    answer: str
+    hits: list[KnowledgeHit]

@@ -1,5 +1,5 @@
 .PHONY: install infra-up infra-down infra-status db-init sync events ingestions \
-	index search
+	index search ask
 
 RUN=uv run --env-file .env
 
@@ -34,3 +34,6 @@ index:
 Q?=What is the difference between magnitude and intensity?
 search:
 	$(RUN) earthquake-rag search "$(Q)"
+
+ask:
+	$(RUN) earthquake-rag ask "$(Q)"
