@@ -40,7 +40,12 @@ make search Q="What is the difference between magnitude and intensity?"
 make ask Q="Why do aftershocks occur?"
 make agent Q="What was the strongest earthquake in the last 24 hours, and what does its magnitude mean?"
 make graph
+make studio
 ```
+
+`make studio` starts the local Agent Server at `http://127.0.0.1:2024`.
+Open `https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024`
+to inspect the explicit `START`/`END` workflow, conditional routes and tool loop.
 
 ## Optional LangSmith tracing
 

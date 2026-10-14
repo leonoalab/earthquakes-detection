@@ -7,9 +7,9 @@ from langchain_core.messages import AIMessage, ToolMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.store.postgres import PostgresStore
 
-from earthquake_rag.application.agent import build_agent
 from earthquake_rag.application.memory_tools import build_memory_tools
 from earthquake_rag.application.tools import build_earthquake_tools
+from earthquake_rag.application.workflow import build_research_workflow
 from earthquake_rag.core.config import Settings
 from earthquake_rag.domain.entities import AgentContext, AgentRun, ToolEvidence
 from earthquake_rag.infrastructure.vector_store import KnowledgeStore
@@ -27,7 +27,12 @@ def agent_runtime(settings: Settings) -> Iterator[Any]:
                 str(settings.checkpoint_database_path)
             ) as checkpointer:
                 checkpointer.setup()
-                yield build_agent(settings.ai, tools, checkpointer, store)
+                yield build_research_workflow(
+                    settings.ai,
+                    tools,
+                    checkpointer=checkpointer,
+                    store=store,
+                )
     finally:
         knowledge.close()
 

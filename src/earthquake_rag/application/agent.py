@@ -58,9 +58,18 @@ def contextual_prompt(request: ModelRequest) -> str:
     if context is None:
         raise RuntimeError("AgentContext is required")
 
+    return build_contextual_prompt(context, request.runtime.store)
+
+
+def build_contextual_prompt(
+    context: AgentContext,
+    store: BaseStore | None,
+) -> str:
+    """Build the same grounded prompt for high-level and explicit agents."""
+
     preferences: dict = {}
-    if request.runtime.store is not None:
-        item = request.runtime.store.get(
+    if store is not None:
+        item = store.get(
             preferences_namespace(context.user_id), PREFERENCES_KEY
         )
         if item is not None:

@@ -60,7 +60,7 @@ class AgentRun:
 
 @dataclass(frozen=True)
 class AgentContext:
-    user_id: str
+    user_id: str = "student-1"
     user_name: str = "Student"
     expertise: str = "intermediate"
     default_hours: int = 24
