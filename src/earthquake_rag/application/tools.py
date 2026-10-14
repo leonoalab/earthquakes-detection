@@ -20,6 +20,29 @@ def parse_datetime(value: str | None) -> datetime | None:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
+def event_for_model(event: dict) -> dict:
+    safe_event = dict(event)
+    tsunami_flag = safe_event.pop("tsunami", False)
+    pager_alert = safe_event.pop("alert", None)
+    safe_event["tsunami_processing_flag"] = tsunami_flag
+    safe_event["pager_alert"] = pager_alert
+    safe_event["source_field_notes"] = {
+        "tsunami_processing_flag": (
+            f"The raw USGS value is {tsunami_flag}. It does not confirm that a "
+            "tsunami occurred and is not an active warning."
+        ),
+        "pager_alert": (
+            f"The raw USGS value is {pager_alert!r}. Do not translate it into "
+            "'safe', 'no danger' or a damage prediction."
+        ),
+    }
+    safe_event["answering_constraint"] = (
+        "This summary record cannot support claims about expected damage, "
+        "personal danger, shaking distance or whether a tsunami occurred."
+    )
+    return safe_event
+
+
 def build_earthquake_tools(knowledge: KnowledgeStore) -> list[BaseTool]:
     @tool
     def search_earthquake_knowledge(question: str, limit: int = 4) -> str:
@@ -57,7 +80,7 @@ def build_earthquake_tools(knowledge: KnowledgeStore) -> list[BaseTool]:
             limit=max(1, min(limit, 100)),
             as_of=parse_datetime(as_of),
         )
-        return serialize(events)
+        return serialize([event_for_model(event) for event in events])
 
     @tool
     def calculate_earthquake_statistics(
@@ -86,8 +109,8 @@ def build_earthquake_tools(knowledge: KnowledgeStore) -> list[BaseTool]:
                 "minimum_magnitude": min(magnitudes),
                 "maximum_magnitude": max(magnitudes),
                 "average_magnitude": round(sum(magnitudes) / len(magnitudes), 2),
-                "strongest_event": max(
-                    events, key=lambda event: float(event["magnitude"])
+                "strongest_event": event_for_model(
+                    max(events, key=lambda event: float(event["magnitude"]))
                 ),
             }
         )

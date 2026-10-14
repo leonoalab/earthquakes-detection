@@ -1,5 +1,5 @@
 .PHONY: install infra-up infra-down infra-status db-init sync events ingestions \
-	index search ask tools
+	index search ask tools agent graph
 
 RUN=uv run --env-file .env
 
@@ -40,3 +40,11 @@ ask:
 
 tools:
 	$(RUN) earthquake-rag tools
+
+THREAD?=tutorial-1
+USER_ID?=student-1
+agent:
+	$(RUN) earthquake-rag agent "$(Q)"
+
+graph:
+	$(RUN) earthquake-rag graph

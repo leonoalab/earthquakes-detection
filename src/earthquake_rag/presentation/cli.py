@@ -4,6 +4,7 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 
 from earthquake_rag.application.ingestion import synchronize_usgs_feed
+from earthquake_rag.application.agent import EarthquakeAgent
 from earthquake_rag.application.knowledge import index_knowledge, search_knowledge
 from earthquake_rag.application.rag import RagService
 from earthquake_rag.application.temporal import (
@@ -37,6 +38,9 @@ def build_parser() -> argparse.ArgumentParser:
     ask.add_argument("question")
     ask.add_argument("--limit", type=int, default=4)
     subparsers.add_parser("tools", help="Display the tools exposed to the model")
+    agent = subparsers.add_parser("agent", help="Ask the LangGraph agent")
+    agent.add_argument("question")
+    subparsers.add_parser("graph", help="Print the agent graph as Mermaid")
     return parser
 
 
@@ -94,6 +98,19 @@ def main() -> None:
                 print(json.dumps(current_tool.args, indent=2))
         finally:
             knowledge.close()
+    elif args.command in {"agent", "graph"}:
+        agent_service = EarthquakeAgent(settings)
+        try:
+            if args.command == "graph":
+                print(agent_service.mermaid())
+            else:
+                run = agent_service.ask(args.question)
+                print(run.answer)
+                print("\nTools used:")
+                for evidence in run.tools:
+                    print(f"- {evidence.name}: {json.dumps(evidence.arguments)}")
+        finally:
+            agent_service.close()
 
 
 if __name__ == "__main__":

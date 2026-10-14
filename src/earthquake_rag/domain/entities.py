@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -41,3 +42,17 @@ class KnowledgeHit:
 class RagAnswer:
     answer: str
     hits: list[KnowledgeHit]
+
+
+@dataclass
+class ToolEvidence:
+    name: str
+    arguments: dict[str, Any]
+    output: str = ""
+
+
+@dataclass
+class AgentRun:
+    answer: str
+    tools: list[ToolEvidence]
+    message_count: int
