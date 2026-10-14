@@ -1,5 +1,5 @@
 .PHONY: install infra-up infra-down infra-status db-init sync events ingestions \
-	index search ask tools agent graph
+	index search ask tools agent graph ui bootstrap
 
 RUN=env -u LANGSMITH_AGENT_ID -u LANGSMITH_AGENT_ENVIRONMENT \
 	-u LANGCHAIN_PROJECT -u LANGCHAIN_SESSION uv run --env-file .env
@@ -50,3 +50,9 @@ agent:
 
 graph:
 	$(RUN) earthquake-rag graph
+
+ui:
+	$(RUN) streamlit run src/earthquake_rag/presentation/streamlit_app.py
+
+bootstrap: infra-up db-init sync index
+	@echo "Environment ready. Run: make ui"
