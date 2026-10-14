@@ -1,4 +1,5 @@
-.PHONY: install infra-up infra-down infra-status db-init sync events ingestions
+.PHONY: install infra-up infra-down infra-status db-init sync events ingestions \
+	index search
 
 RUN=uv run --env-file .env
 
@@ -26,3 +27,10 @@ events:
 
 ingestions:
 	$(RUN) earthquake-rag ingestions
+
+index:
+	$(RUN) earthquake-rag index
+
+Q?=What is the difference between magnitude and intensity?
+search:
+	$(RUN) earthquake-rag search "$(Q)"

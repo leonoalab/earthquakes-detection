@@ -27,3 +27,11 @@ class IngestionSummary:
     feed_title: str
     received_events: int
     inserted_versions: int
+
+
+@dataclass(frozen=True)
+class KnowledgeHit:
+    text: str
+    title: str
+    source: str
+    score: float
