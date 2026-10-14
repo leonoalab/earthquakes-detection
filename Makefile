@@ -44,7 +44,8 @@ tools:
 THREAD?=tutorial-1
 USER_ID?=student-1
 agent:
-	$(RUN) earthquake-rag agent "$(Q)"
+	$(RUN) earthquake-rag agent "$(Q)" \
+		--thread-id "$(THREAD)" --user-id "$(USER_ID)"
 
 graph:
 	$(RUN) earthquake-rag graph

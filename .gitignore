@@ -5,6 +5,7 @@ __pycache__/
 .DS_Store
 .qdrant/
 data/*.db
+data/*.db-*
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/

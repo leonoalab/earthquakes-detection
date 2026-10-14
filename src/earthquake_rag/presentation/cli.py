@@ -3,9 +3,10 @@ import json
 from dataclasses import asdict
 from datetime import UTC, datetime
 
+from earthquake_rag.application.agent_runtime import invoke_agent, render_agent_graph
 from earthquake_rag.application.ingestion import synchronize_usgs_feed
-from earthquake_rag.application.agent import EarthquakeAgent
 from earthquake_rag.application.knowledge import index_knowledge, search_knowledge
+from earthquake_rag.application.memory_tools import build_memory_tools
 from earthquake_rag.application.rag import RagService
 from earthquake_rag.application.temporal import (
     get_event_history,
@@ -14,6 +15,7 @@ from earthquake_rag.application.temporal import (
 )
 from earthquake_rag.application.tools import build_earthquake_tools
 from earthquake_rag.core.config import get_settings
+from earthquake_rag.domain.entities import AgentContext
 from earthquake_rag.infrastructure.database import create_schema
 from earthquake_rag.infrastructure.vector_store import KnowledgeStore
 
@@ -40,6 +42,12 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("tools", help="Display the tools exposed to the model")
     agent = subparsers.add_parser("agent", help="Ask the LangGraph agent")
     agent.add_argument("question")
+    agent.add_argument("--thread-id", default="tutorial-1")
+    agent.add_argument("--user-id", default="student-1")
+    agent.add_argument("--user-name", default="Student")
+    agent.add_argument("--expertise", default="intermediate")
+    agent.add_argument("--hours", type=int, default=24)
+    agent.add_argument("--as-of", help="ISO-8601 knowledge cutoff")
     subparsers.add_parser("graph", help="Print the agent graph as Mermaid")
     return parser
 
@@ -91,7 +99,7 @@ def main() -> None:
     elif args.command == "tools":
         knowledge = KnowledgeStore(settings.ai, settings.qdrant)
         try:
-            tools = build_earthquake_tools(knowledge)
+            tools = [*build_earthquake_tools(knowledge), *build_memory_tools()]
             for current_tool in tools:
                 print(f"\nTool: {current_tool.name}")
                 print(current_tool.description.strip())
@@ -99,18 +107,26 @@ def main() -> None:
         finally:
             knowledge.close()
     elif args.command in {"agent", "graph"}:
-        agent_service = EarthquakeAgent(settings)
-        try:
-            if args.command == "graph":
-                print(agent_service.mermaid())
-            else:
-                run = agent_service.ask(args.question)
-                print(run.answer)
-                print("\nTools used:")
-                for evidence in run.tools:
-                    print(f"- {evidence.name}: {json.dumps(evidence.arguments)}")
-        finally:
-            agent_service.close()
+        if args.command == "graph":
+            print(render_agent_graph(settings))
+        else:
+            run = invoke_agent(
+                settings,
+                question=args.question,
+                thread_id=args.thread_id,
+                context=AgentContext(
+                    user_id=args.user_id,
+                    user_name=args.user_name,
+                    expertise=args.expertise,
+                    default_hours=max(1, args.hours),
+                    as_of=args.as_of,
+                ),
+            )
+            print(run.answer)
+            print("\nTools used:")
+            for evidence in run.tools:
+                print(f"- {evidence.name}: {json.dumps(evidence.arguments)}")
+            print(f"\nMessages in thread: {run.message_count}")
 
 
 if __name__ == "__main__":

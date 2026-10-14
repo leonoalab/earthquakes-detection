@@ -56,3 +56,12 @@ class AgentRun:
     answer: str
     tools: list[ToolEvidence]
     message_count: int
+
+
+@dataclass(frozen=True)
+class AgentContext:
+    user_id: str
+    user_name: str = "Student"
+    expertise: str = "intermediate"
+    default_hours: int = 24
+    as_of: str | None = None

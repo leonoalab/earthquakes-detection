@@ -2,10 +2,11 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
-from langchain.tools import tool
+from langchain.tools import ToolRuntime, tool
 from langchain_core.tools import BaseTool
 
 from earthquake_rag.application.temporal import get_event_history, get_latest_events
+from earthquake_rag.domain.entities import AgentContext
 from earthquake_rag.infrastructure.vector_store import KnowledgeStore
 
 
@@ -66,7 +67,8 @@ def build_earthquake_tools(knowledge: KnowledgeStore) -> list[BaseTool]:
 
     @tool
     def list_recent_earthquakes(
-        hours: int = 24,
+        runtime: ToolRuntime[AgentContext],
+        hours: int | None = None,
         limit: int = 10,
         as_of: str | None = None,
     ) -> str:
@@ -75,16 +77,19 @@ def build_earthquake_tools(knowledge: KnowledgeStore) -> list[BaseTool]:
         Use this for questions about locations, magnitudes, depth, event
         links, tsunami flags, alerts, felt reports or review status.
         """
+        selected_hours = hours or runtime.context.default_hours
+        selected_as_of = as_of or runtime.context.as_of
         events = get_latest_events(
-            hours=max(1, min(hours, 24 * 30)),
+            hours=max(1, min(selected_hours, 24 * 30)),
             limit=max(1, min(limit, 100)),
-            as_of=parse_datetime(as_of),
+            as_of=parse_datetime(selected_as_of),
         )
         return serialize([event_for_model(event) for event in events])
 
     @tool
     def calculate_earthquake_statistics(
-        hours: int = 24,
+        runtime: ToolRuntime[AgentContext],
+        hours: int | None = None,
         as_of: str | None = None,
     ) -> str:
         """Calculate exact statistics for stored USGS earthquakes.
@@ -92,19 +97,21 @@ def build_earthquake_tools(knowledge: KnowledgeStore) -> list[BaseTool]:
         Returns event count, minimum, maximum and average magnitude, plus
         the strongest event. Use this instead of asking the model to count.
         """
+        selected_hours = hours or runtime.context.default_hours
+        selected_as_of = as_of or runtime.context.as_of
         events = get_latest_events(
-            hours=max(1, min(hours, 24 * 30)),
+            hours=max(1, min(selected_hours, 24 * 30)),
             limit=10_000,
-            as_of=parse_datetime(as_of),
+            as_of=parse_datetime(selected_as_of),
         )
         if not events:
-            return serialize({"hours": hours, "event_count": 0})
+            return serialize({"hours": selected_hours, "event_count": 0})
 
         magnitudes = [float(event["magnitude"]) for event in events]
         return serialize(
             {
-                "hours": hours,
-                "as_of": as_of,
+                "hours": selected_hours,
+                "as_of": selected_as_of,
                 "event_count": len(events),
                 "minimum_magnitude": min(magnitudes),
                 "maximum_magnitude": max(magnitudes),
