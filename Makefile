@@ -1,5 +1,5 @@
 .PHONY: install infra-up infra-down infra-status db-init sync events ingestions \
-	index search ask
+	index search ask tools
 
 RUN=uv run --env-file .env
 
@@ -37,3 +37,6 @@ search:
 
 ask:
 	$(RUN) earthquake-rag ask "$(Q)"
+
+tools:
+	$(RUN) earthquake-rag tools

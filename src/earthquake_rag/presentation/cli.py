@@ -11,8 +11,10 @@ from earthquake_rag.application.temporal import (
     get_latest_events,
     get_latest_ingestions,
 )
+from earthquake_rag.application.tools import build_earthquake_tools
 from earthquake_rag.core.config import get_settings
 from earthquake_rag.infrastructure.database import create_schema
+from earthquake_rag.infrastructure.vector_store import KnowledgeStore
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -34,6 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
     ask = subparsers.add_parser("ask", help="Answer with classic RAG")
     ask.add_argument("question")
     ask.add_argument("--limit", type=int, default=4)
+    subparsers.add_parser("tools", help="Display the tools exposed to the model")
     return parser
 
 
@@ -81,6 +84,16 @@ def main() -> None:
         print("\nRetrieved sources:")
         for hit in result.hits:
             print(f"- {hit.title} ({hit.source}, score={hit.score:.4f})")
+    elif args.command == "tools":
+        knowledge = KnowledgeStore(settings.ai, settings.qdrant)
+        try:
+            tools = build_earthquake_tools(knowledge)
+            for current_tool in tools:
+                print(f"\nTool: {current_tool.name}")
+                print(current_tool.description.strip())
+                print(json.dumps(current_tool.args, indent=2))
+        finally:
+            knowledge.close()
 
 
 if __name__ == "__main__":
