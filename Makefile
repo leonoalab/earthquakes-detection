@@ -1,4 +1,4 @@
-.PHONY: install infra-up infra-down infra-status db-init sync
+.PHONY: install infra-up infra-down infra-status db-init sync events ingestions
 
 RUN=uv run --env-file .env
 
@@ -19,3 +19,10 @@ db-init:
 
 sync:
 	$(RUN) earthquake-rag sync
+
+HOURS?=24
+events:
+	$(RUN) earthquake-rag events --hours $(HOURS)
+
+ingestions:
+	$(RUN) earthquake-rag ingestions
