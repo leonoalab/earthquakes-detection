@@ -1,12 +1,13 @@
 # Earthquake RAG
 
-A temporal and agentic RAG application built with real USGS earthquake data.
-It combines PostgreSQL, Qdrant, Ollama, LangChain, LangGraph, optional
-LangSmith tracing and a Streamlit interface.
+Read the complete step-by-step tutorial in Spanish:
 
-The complete Spanish tutorial is maintained in the separate `tutorial` branch.
-The `main` branch contains only the application, while each tutorial milestone
-is available as an annotated `step-*` tag.
+[Los datos cambian: así construí un RAG temporal con información real de terremotos](https://rocky-azimuth-fcc.notion.site/Los-datos-cambian-as-constru-un-RAG-temporal-con-informaci-n-real-de-terremotos-3cecb657b19080bc9cc9ca7db3861790)
+
+and in English:
+[Data Changes: How I Built a Time-Aware RAG with Real Earthquake Data](https://rocky-azimuth-fcc.notion.site/Data-Changes-How-I-Built-a-Time-Aware-RAG-with-Real-Earthquake-Data-3facb657b1908006a520de47ad13e893?pvs=73)
+
+Each project milestone is available as an annotated `step-*` Git tag.
 
 ## Requirements
 
